@@ -18,6 +18,7 @@ class TvController extends ChangeNotifier {
   bool bannerVisible = false;
   String numberEntry = '';
   bool muted = false;
+  bool playing = true;
   double volume = 80; // 0..100
   String? toast;
   Set<String> favorites = {};
@@ -26,17 +27,18 @@ class TvController extends ChangeNotifier {
 
   SharedPreferences? _prefs;
   int _streamIndex = 0;
-  int _token = 0; // identifies the stream attempt currently allowed to report results
+  int _token =
+      0; // identifies the stream attempt currently allowed to report results
   int _direction = 1;
   int _skipsInRow = 0;
   Timer? _bannerTimer, _numberTimer, _timeout, _toastTimer;
   final List<StreamSubscription> _subs = [];
 
   List<String> get categories => [
-        'all',
-        if (favorites.isNotEmpty) 'favorites',
-        ...({...all.map((c) => c.category)}.toList()..sort()),
-      ];
+    'all',
+    if (favorites.isNotEmpty) 'favorites',
+    ...({...all.map((c) => c.category)}.toList()..sort()),
+  ];
 
   List<Channel> get channels {
     switch (category) {
@@ -63,14 +65,19 @@ class TvController extends ChangeNotifier {
     _attachPlayer();
 
     try {
-      _prefs = await SharedPreferences.getInstance().timeout(const Duration(seconds: 8));
+      _prefs = await SharedPreferences.getInstance().timeout(
+        const Duration(seconds: 8),
+      );
       favorites = (_prefs!.getStringList('favorites') ?? []).toSet();
       volume = _prefs!.getDouble('volume') ?? 80;
     } catch (_) {
       // Settings are optional; carry on with defaults.
     }
 
-    final cached = await Catalog.loadCached().timeout(const Duration(seconds: 8), onTimeout: () => null);
+    final cached = await Catalog.loadCached().timeout(
+      const Duration(seconds: 8),
+      onTimeout: () => null,
+    );
     if (cached != null && cached.isNotEmpty) _setChannels(cached);
     try {
       status = all.isEmpty ? 'Downloading channel list…' : '';
@@ -90,17 +97,32 @@ class TvController extends ChangeNotifier {
   void _attachPlayer() {
     if (_listening) return;
     _listening = true;
-    player.setVolume(volume).timeout(const Duration(seconds: 5)).catchError((_) {});
-    _subs.add(player.stream.error.listen((e) {
-      if (e.isNotEmpty) _failStream(_token);
-    }));
+    player
+        .setVolume(volume)
+        .timeout(const Duration(seconds: 5))
+        .catchError((_) {});
+    _subs.add(
+      player.stream.playing.listen((p) {
+        playing = p;
+        notifyListeners();
+      }),
+    );
+    _subs.add(
+      player.stream.error.listen((e) {
+        if (e.isNotEmpty) _failStream(_token);
+      }),
+    );
     // A stream counts as working once it reports a video size or starts advancing.
-    _subs.add(player.stream.width.listen((w) {
-      if ((w ?? 0) > 0) _markWorking(_token);
-    }));
-    _subs.add(player.stream.position.listen((p) {
-      if (p > const Duration(milliseconds: 400)) _markWorking(_token);
-    }));
+    _subs.add(
+      player.stream.width.listen((w) {
+        if ((w ?? 0) > 0) _markWorking(_token);
+      }),
+    );
+    _subs.add(
+      player.stream.position.listen((p) {
+        if (p > const Duration(milliseconds: 400)) _markWorking(_token);
+      }),
+    );
   }
 
   void _setChannels(List<Channel> list) {
@@ -136,7 +158,8 @@ class TvController extends ChangeNotifier {
 
   void typeDigit(String d) {
     numberEntry = (numberEntry + d);
-    if (numberEntry.length > 3) numberEntry = numberEntry.substring(numberEntry.length - 3);
+    if (numberEntry.length > 3)
+      numberEntry = numberEntry.substring(numberEntry.length - 3);
     _numberTimer?.cancel();
     _numberTimer = Timer(const Duration(milliseconds: 1500), commitNumber);
     notifyListeners();
@@ -149,7 +172,9 @@ class TvController extends ChangeNotifier {
     if (n != null) {
       final match = all.where((c) => c.number == n);
       if (match.isNotEmpty) {
-        if (category != 'all' && match.first.category != category && category != 'favorites') {
+        if (category != 'all' &&
+            match.first.category != category &&
+            category != 'favorites') {
           category = 'all';
         }
         tune(match.first, 1);
@@ -160,14 +185,24 @@ class TvController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleFavorite() {
-    final c = current;
+  void toggleFavorite() => toggleFavoriteFor(current);
+
+  void toggleFavoriteFor(Channel? c) {
     if (c == null) return;
-    favorites.contains(c.id) ? favorites.remove(c.id) : favorites.add(c.id);
+    if (favorites.contains(c.id)) {
+      favorites.remove(c.id);
+    } else {
+      favorites.add(c.id);
+    }
     _prefs?.setStringList('favorites', favorites.toList());
     if (favorites.isEmpty && category == 'favorites') category = 'all';
-    _toast(favorites.contains(c.id) ? '★ Added to favorites' : 'Removed from favorites');
-    showBanner();
+    _toast(
+      favorites.contains(c.id)
+          ? '★ Added to favorites'
+          : 'Removed from favorites',
+    );
+    if (c.id == current?.id) showBanner();
+    notifyListeners();
   }
 
   void stepFavorite(int d) {
@@ -185,6 +220,31 @@ class TvController extends ChangeNotifier {
     }
     if (category != 'favorites') category = 'all';
     tune(target, d);
+  }
+
+  void togglePlay() => player.playOrPause();
+
+  void toggleOverlay() {
+    if (bannerVisible) {
+      _bannerTimer?.cancel();
+      bannerVisible = false;
+      notifyListeners();
+    } else {
+      showBanner();
+    }
+  }
+
+  void setCategory(String c) {
+    category = c;
+    notifyListeners();
+  }
+
+  void setVolumeTo(double v) {
+    volume = v.clamp(0, 100);
+    muted = false;
+    player.setVolume(volume);
+    _prefs?.setDouble('volume', volume);
+    notifyListeners();
   }
 
   // ---- volume ----
@@ -282,15 +342,18 @@ class TvController extends ChangeNotifier {
     Timer(const Duration(milliseconds: 600), () {
       if (current?.id != ch.id) return;
       final i = list.indexWhere((c) => c.id == ch.id);
-      tune(list[(((i < 0 ? 0 : i) + d) % list.length + list.length) % list.length], d,
-          resetSkips: false);
+      tune(
+        list[(((i < 0 ? 0 : i) + d) % list.length + list.length) % list.length],
+        d,
+        resetSkips: false,
+      );
     });
   }
 
   void showBanner() {
     bannerVisible = true;
     _bannerTimer?.cancel();
-    _bannerTimer = Timer(const Duration(milliseconds: 3500), () {
+    _bannerTimer = Timer(const Duration(milliseconds: 4500), () {
       bannerVisible = false;
       notifyListeners();
     });

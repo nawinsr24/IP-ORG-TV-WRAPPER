@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tamil TV – Downloads</title>
+<link rel="icon" href="icon.png">
+<style>
+  :root { --bg:#0f1117; --card:#181b24; --fg:#eef0f5; --muted:#9aa3b5; --accent:#ff6a3d; --line:#2a2f3d; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f5f6fa; --card:#fff; --fg:#161922; --muted:#5b6475; --line:#dfe3ec; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 16px 64px; }
+  header { text-align:center; margin-bottom: 28px; }
+  header img { width: 96px; height: 96px; border-radius: 22px; }
+  h1 { margin: 12px 0 4px; font-size: 2rem; }
+  .sub { color: var(--muted); margin: 0; }
+  .notice { background: var(--card); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:10px; padding:14px 16px; margin: 24px 0; font-size:.93rem; color:var(--muted); }
+  .notice strong { color: var(--fg); }
+  .grid { display:grid; gap:14px; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; }
+  .card h2 { margin:0; font-size:1.15rem; }
+  .card p { margin:0; color:var(--muted); font-size:.9rem; flex:1; }
+  .btn { display:inline-block; text-align:center; background:var(--accent); color:#fff; text-decoration:none; font-weight:600; padding:11px 14px; border-radius:10px; }
+  .btn:hover { filter:brightness(1.08); }
+  h3 { margin: 34px 0 8px; }
+  table { width:100%; border-collapse:collapse; font-size:.93rem; }
+  td { padding:7px 10px; border-bottom:1px solid var(--line); }
+  td:first-child { white-space:nowrap; font-weight:600; width:1%; }
+  kbd { background:var(--card); border:1px solid var(--line); border-radius:5px; padding:1px 6px; font-family:ui-monospace,Menlo,monospace; font-size:.85em; }
+  footer { margin-top:40px; text-align:center; color:var(--muted); font-size:.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="icon.png" alt="Tamil TV icon">
+    <h1>Tamil TV</h1>
+    <p class="sub">A simple TV-style player for Mac, Windows and Android</p>
+  </header>
+
+  <div class="notice">
+    <strong>Educational project.</strong> Free, no ads, not monetised. This app does <strong>not host or own any
+    content</strong>; it only plays public streams listed by the
+    <a href="https://github.com/iptv-org/iptv">iptv-org</a> project. Any legal concern about a channel or its
+    content relates to the original stream source and the iptv-org repository. The app asks you to accept this
+    notice each time it opens. Use it responsibly and lawfully in your country.
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>🤖 Android</h2>
+      <p>Phones, tablets and Android TV. Allow “install unknown apps” for your browser when asked.</p>
+      <a class="btn" href="https://github.com/nawinsr24/IP-ORG-TV-WRAPPER/releases/latest/download/TamilTV-android.apk">Download .apk</a>
+    </div>
+    <div class="card">
+      <h2>🪟 Windows</h2>
+      <p>Unzip, then run <code>tamil_tv.exe</code>. If SmartScreen warns: More info → Run anyway.</p>
+      <a class="btn" href="https://github.com/nawinsr24/IP-ORG-TV-WRAPPER/releases/latest/download/TamilTV-windows.zip">Download .zip</a>
+    </div>
+    <div class="card">
+      <h2>🍎 Mac</h2>
+      <p>Unzip and drag to Applications. The app is unsigned: right-click → Open the first time.</p>
+      <a class="btn" href="https://github.com/nawinsr24/IP-ORG-TV-WRAPPER/releases/latest/download/TamilTV-macos.zip">Download .zip</a>
+    </div>
+  </div>
+
+  <h3>Controls</h3>
+  <table>
+    <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Previous / next channel</td></tr>
+    <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Volume up / down</td></tr>
+    <tr><td><kbd>0</kbd>–<kbd>9</kbd></td><td>Type a channel number to jump to it</td></tr>
+    <tr><td><kbd>S</kbd></td><td>Star / unstar a favourite</td></tr>
+    <tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>Previous / next favourite</td></tr>
+    <tr><td><kbd>L</kbd></td><td>Channel list with search</td></tr>
+    <tr><td><kbd>C</kbd></td><td>Cycle category (news, movies, music, kids, religious…)</td></tr>
+    <tr><td><kbd>Space</kbd></td><td>Mute</td></tr>
+    <tr><td><kbd>T</kbd></td><td>Sleep timer</td></tr>
+    <tr><td><kbd>F</kbd></td><td>Full screen (desktop)</td></tr>
+  </table>
+  <p class="sub" style="margin-top:10px">Android phone: tap for controls, swipe left/right to change channel, swipe up/down for volume.</p>
+
+  <footer>
+    Many community streams are offline or geo-blocked, so some channels will be skipped.<br>
+    <a href="https://github.com/nawinsr24/IP-ORG-TV-WRAPPER">Source code on GitHub</a>
+  </footer>
+</main>
+</body>
+</html>

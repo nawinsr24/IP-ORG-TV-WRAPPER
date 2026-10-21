@@ -222,6 +222,8 @@ class TvController extends ChangeNotifier {
     tune(target, d);
   }
 
+  void say(String msg) => _toast(msg);
+
   void togglePlay() => player.playOrPause();
 
   void toggleOverlay() {

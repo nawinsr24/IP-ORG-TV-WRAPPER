@@ -63,15 +63,31 @@ class _MobileLayoutState extends State<MobileLayout> {
     );
   }
 
-  /// Force the other orientation, then hand control back to the sensor.
+  bool _locked = false;
+
+  /// Tap once: lock to the other orientation (stays until tapped again). Tap again: back to auto-rotate.
   Future<void> _rotate(Orientation now) async {
-    await SystemChrome.setPreferredOrientations(
-      now == Orientation.portrait
-          ? [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]
-          : [DeviceOrientation.portraitUp],
-    );
-    await Future.delayed(const Duration(seconds: 2));
-    await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    if (_locked) {
+      _locked = false;
+      await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      tv.say('Auto-rotate on');
+    } else {
+      _locked = true;
+      await SystemChrome.setPreferredOrientations(
+        now == Orientation.portrait
+            ? [
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.landscapeRight,
+              ]
+            : [DeviceOrientation.portraitUp],
+      );
+      tv.say(
+        now == Orientation.portrait
+            ? 'Landscape locked — tap again for auto'
+            : 'Portrait locked — tap again for auto',
+      );
+    }
+    if (mounted) setState(() {});
   }
 
   Widget _video() => Video(
@@ -216,7 +232,11 @@ class _MobileLayoutState extends State<MobileLayout> {
             ),
             Container(
               color: const Color(0xFF181B24),
-              child: ControlBar(tv: tv, onRotate: () => _rotate(o)),
+              child: ControlBar(
+                tv: tv,
+                locked: _locked,
+                onRotate: () => _rotate(o),
+              ),
             ),
             Expanded(child: ChannelPanel(tv: tv)),
           ],
@@ -288,11 +308,13 @@ class ControlBar extends StatelessWidget {
   final TvController tv;
   final VoidCallback onRotate;
   final VoidCallback? onList;
+  final bool locked;
   const ControlBar({
     super.key,
     required this.tv,
     required this.onRotate,
     this.onList,
+    this.locked = false,
   });
 
   @override
@@ -353,9 +375,16 @@ class ControlBar extends StatelessWidget {
               icon: const Icon(Icons.format_list_bulleted_rounded),
             ),
           IconButton(
-            tooltip: 'Rotate',
+            tooltip: locked
+                ? 'Rotation locked (tap for auto)'
+                : 'Rotate screen',
             onPressed: onRotate,
-            icon: const Icon(Icons.screen_rotation_rounded),
+            icon: Icon(
+              locked
+                  ? Icons.screen_lock_rotation_rounded
+                  : Icons.screen_rotation_rounded,
+              color: locked ? Colors.amber : null,
+            ),
           ),
         ],
       ),

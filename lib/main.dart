@@ -465,18 +465,60 @@ class DisclaimerDialog extends StatelessWidget {
         title: const Text('Before you watch'),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
-          child: const SingleChildScrollView(
-            child: Text(
-              'Tamil TV is a simple wrapper app made for educational purposes only. '
-              'It is free, has no ads, and is not monetised in any way.\n\n'
-              'This app does not host, own, or upload any video content. It only plays public '
-              'streams listed by the open-source iptv-org project (github.com/iptv-org/iptv). '
-              'All channels, streams and trademarks belong to their respective owners.\n\n'
-              'Any legal issue about a channel or its content relates to the original stream '
-              'source and the iptv-org repository, not to this app. If you are the owner of a '
-              'channel and want it removed, please contact iptv-org.\n\n'
-              'By tapping "I Agree" you confirm that you understand this and will use the app '
-              'responsibly and lawfully in your country.',
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    border: Border.all(color: Colors.amber, width: 1.5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Nawin SR',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.amber,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'வணக்கம்! Welcome to Tamil TV 👋',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'I built this app for fun and learning, and I hope you enjoy watching your favourite channels.',
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  'Tamil TV is a simple wrapper app made for educational purposes only. '
+                  'It is free, has no ads, and is not monetised in any way.\n\n'
+                  'This app does not host, own, or upload any video content. It only plays public '
+                  'streams listed by the open-source iptv-org project (github.com/iptv-org/iptv). '
+                  'All channels, streams and trademarks belong to their respective owners.\n\n'
+                  'Any legal issue about a channel or its content relates to the original stream '
+                  'source and the iptv-org repository, not to this app. If you are the owner of a '
+                  'channel and want it removed, please contact iptv-org.\n\n'
+                  'By tapping "I Agree" you confirm that you understand this and will use the app '
+                  'responsibly and lawfully in your country.',
+                ),
+              ],
             ),
           ),
         ),

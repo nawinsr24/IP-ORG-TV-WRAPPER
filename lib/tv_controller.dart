@@ -51,12 +51,46 @@ class TvController extends ChangeNotifier {
 
   bool get isFavorite => current != null && favorites.contains(current!.id);
 
-  Future<void> start() async {
-    _prefs = await SharedPreferences.getInstance();
-    favorites = (_prefs!.getStringList('favorites') ?? []).toSet();
-    volume = _prefs!.getDouble('volume') ?? 80;
-    await player.setVolume(volume);
+  bool loadFailed = false;
+  bool _listening = false;
 
+  Future<void> start() async {
+    loadFailed = false;
+    status = 'Loading channels…';
+    notifyListeners();
+
+    // Player wiring is fire-and-forget so a slow native player can never block channel loading.
+    _attachPlayer();
+
+    try {
+      _prefs = await SharedPreferences.getInstance().timeout(const Duration(seconds: 8));
+      favorites = (_prefs!.getStringList('favorites') ?? []).toSet();
+      volume = _prefs!.getDouble('volume') ?? 80;
+    } catch (_) {
+      // Settings are optional; carry on with defaults.
+    }
+
+    final cached = await Catalog.loadCached().timeout(const Duration(seconds: 8), onTimeout: () => null);
+    if (cached != null && cached.isNotEmpty) _setChannels(cached);
+    try {
+      status = all.isEmpty ? 'Downloading channel list…' : '';
+      notifyListeners();
+      _setChannels(await Catalog.fetch());
+    } catch (e) {
+      if (all.isEmpty) {
+        loadFailed = true;
+        status = 'Could not load channels.\n$e';
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> retry() => start();
+
+  void _attachPlayer() {
+    if (_listening) return;
+    _listening = true;
+    player.setVolume(volume).timeout(const Duration(seconds: 5)).catchError((_) {});
     _subs.add(player.stream.error.listen((e) {
       if (e.isNotEmpty) _failStream(_token);
     }));
@@ -67,17 +101,6 @@ class TvController extends ChangeNotifier {
     _subs.add(player.stream.position.listen((p) {
       if (p > const Duration(milliseconds: 400)) _markWorking(_token);
     }));
-
-    final cached = await Catalog.loadCached();
-    if (cached != null && cached.isNotEmpty) _setChannels(cached);
-    try {
-      _setChannels(await Catalog.fetch());
-    } catch (e) {
-      if (all.isEmpty) {
-        status = 'Could not load channels. Check your internet connection.';
-        notifyListeners();
-      }
-    }
   }
 
   void _setChannels(List<Channel> list) {

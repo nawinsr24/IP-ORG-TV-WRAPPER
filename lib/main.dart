@@ -166,7 +166,20 @@ class _TvScreenState extends State<TvScreen> {
                   },
             child: Stack(fit: StackFit.expand, children: [
               Video(controller: tv.video, controls: NoVideoControls, fill: Colors.black),
-              if (tv.status.isNotEmpty) Center(child: _Pill(tv.status, big: true)),
+              if (_agreed && tv.all.isEmpty)
+                Center(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    if (!tv.loadFailed) const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    _Pill(tv.status.isEmpty ? 'Loading channels…' : tv.status, big: true),
+                    if (tv.loadFailed) ...[
+                      const SizedBox(height: 16),
+                      FilledButton.icon(onPressed: tv.retry, icon: const Icon(Icons.refresh), label: const Text('Retry')),
+                    ],
+                  ]),
+                )
+              else if (tv.status.isNotEmpty)
+                Center(child: _Pill(tv.status, big: true)),
               if (tv.numberEntry.isNotEmpty)
                 Positioned(
                   top: 24,
@@ -184,6 +197,12 @@ class _TvScreenState extends State<TvScreen> {
                 Positioned(top: 24, left: 24, child: _Pill('😴 ${tv.sleepIn!.inMinutes} min')),
               if (tv.bannerVisible && tv.current != null)
                 Positioned(left: 0, right: 0, bottom: 0, child: _Banner(tv: tv, onList: () => setState(() => _listOpen = true))),
+              if (!isDesktop && !tv.bannerVisible && tv.all.isNotEmpty)
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: IconButton.filledTonal(onPressed: tv.showBanner, icon: const Icon(Icons.tv)),
+                ),
               if (_listOpen)
                 Positioned(
                   top: 0,
